@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Immersive Van Gogh Canvas — Starry Night & Vincent Felt-Piano Studio</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🌟 Immersive Van Gogh Canvas <span class="badge">Q16.16 • Saint-Rémy Palette</span></h1>
+    <div id="hud-stars">Stars &amp; Notes: 0</div>
+  </header>
+
+  <main>
+    <div class="stage-bar" id="hud-stage">Stage I: First Stars in the Twilight Sky</div>
+    <canvas id="gogh-canvas" width="680" height="480"></canvas>
+    <p id="hud-phrase" class="phrase">
+      Touch anywhere on the canvas to ignite a star and play the opening notes of Vincent.
+    </p>
+    <div class="controls">
+      <button id="btn-audio">Piano: Vincent (On)</button>
+      <button id="btn-reset">Clear Canvas &amp; Restart Verse</button>
+    </div>
+  </main>
+
+  <script type="module" src="src/gogh-app.js"></script>
+</body>
+</html>
