@@ -1,0 +1,10 @@
+{
+  "name": "immersive-van-gogh-canvas",
+  "version": "1.0.0",
+  "description": "Interactive zero-float Q16.16 Starry Night art canvas where each touch ignites a star, advances a felt-piano arrangement of Vincent, and awakens swirling impasto currents.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/gogh-kernel.test.mjs"
+  },
+  "license": "MIT"
+}
