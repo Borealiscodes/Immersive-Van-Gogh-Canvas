@@ -1,9 +1,5 @@
 /**
- * src/gogh-renderer.js — Layered Impasto Brushstroke, Halo & Horizon Renderer (Ledger 2)
- * Renders the Saint-Rémy Starry Night palette, spinning impasto star halos,
- * swirling brushstroke ribbons, rising crescent moon, village lights, and cypress tree.
- *
- * Signed-off-by: Borealis Serenity Hedling <chguard-sentinel@vaked.dev>
+ * src/gogh-renderer.js — Zero-Flicker Impasto Brushstroke, Halo & Horizon Renderer (Ledger 2)
  */
 
 import { fromQ16 } from "./core.js";
@@ -13,11 +9,15 @@ export function renderGoghCanvas(ctx, state) {
   const { width, height } = ctx.canvas;
   const notes = state.notesPlayed;
 
-  // 1. Deep Ultramarine Night ground with subtle atmospheric trail persistence
-  ctx.fillStyle = "rgba(11, 25, 61, 0.24)";
+  // 1. Steady, non-flashing opaque twilight sky gradient
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+  skyGrad.addColorStop(0, "#08122e");
+  skyGrad.addColorStop(0.55, VAN_GOGH_PALETTE.ultramarineNight);
+  skyGrad.addColorStop(1, "#162d61");
+  ctx.fillStyle = skyGrad;
   ctx.fillRect(0, 0, width, height);
 
-  // 2. Swirling Impasto Brushstroke Dashes
+  // 2. Smooth, continuous impasto brushstroke curves (zero strobe)
   ctx.lineCap = "round";
   for (const p of state.particles) {
     const x1 = fromQ16(p.prevXQ16);
@@ -25,13 +25,16 @@ export function renderGoghCanvas(ctx, state) {
     const x2 = fromQ16(p.xQ16);
     const y2 = fromQ16(p.yQ16);
 
-    // Skip wrap-around jumps across canvas edges
-    if (Math.hypot(x2 - x1, y2 - y1) > 28) continue;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 0.1 || dist > 28) continue;
 
+    // Extend dash gently along velocity vector for rich impasto brushwork
     ctx.strokeStyle = p.color;
     ctx.lineWidth = p.width;
     ctx.beginPath();
-    ctx.moveTo(x1, y1);
+    ctx.moveTo(x1 - dx * 4, y1 - dy * 4);
     ctx.lineTo(x2, y2);
     ctx.stroke();
   }
@@ -45,44 +48,48 @@ export function renderGoghCanvas(ctx, state) {
     ctx.save();
     ctx.globalAlpha = moonAlpha;
 
-    // Concentric moon aura
     ctx.strokeStyle = VAN_GOGH_PALETTE.naplesHalo;
     ctx.lineWidth = 2.5;
-    ctx.setLineDash([10, 7]);
+    ctx.setLineDash([8, 6]);
     ctx.beginPath();
-    ctx.arc(mx, my, 46 + Math.sin(state.tick * 0.03) * 2, state.tick * 0.01, state.tick * 0.01 + Math.PI * 2);
+    ctx.arc(mx, my, 46, state.tick * 0.006, state.tick * 0.006 + Math.PI * 2);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Radiant cadmium crescent
     ctx.fillStyle = VAN_GOGH_PALETTE.cadmiumStarlight;
     ctx.beginPath();
     ctx.arc(mx, my, 26, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = VAN_GOGH_PALETTE.ultramarineNight;
+    ctx.fillStyle = "#0b193d";
     ctx.beginPath();
     ctx.arc(mx - 10, my - 5, 22, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }
 
-  // 4. Player-Touched Stars & Rotating Broken-Brushstroke Impasto Halos
+  // 4. Player-Touched Stars & Gentle Rotating Impasto Halos
   for (const star of state.stars) {
     const sx = fromQ16(star.xQ16);
     const sy = fromQ16(star.yQ16);
     const age = state.tick - star.birthTick;
-    const bloom = Math.min(1, age / 18);
+    const bloom = Math.min(1, age / 24);
 
-    // Concentric broken-dash Naples Halo rings
+    // Soft warm glow behind star
+    ctx.fillStyle = "rgba(247, 208, 70, 0.14)";
+    ctx.beginPath();
+    ctx.arc(sx, sy, (24 + star.haloRings * 7) * bloom, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Concentric broken-dash Naples Halo rings (slow, calm rotation)
     for (let ring = 1; ring <= star.haloRings; ring++) {
-      const r = (10 + ring * 9) * bloom;
-      const angle = state.tick * 0.018 * star.spinDirection * (ring % 2 === 0 ? -1 : 1);
+      const r = (11 + ring * 9) * bloom;
+      const angle = state.tick * 0.008 * star.spinDirection * (ring % 2 === 0 ? -1 : 1);
 
       ctx.save();
       ctx.strokeStyle = ring === 1 ? VAN_GOGH_PALETTE.cadmiumStarlight : VAN_GOGH_PALETTE.naplesHalo;
-      ctx.lineWidth = ring === 1 ? 2.6 : 1.8;
-      ctx.setLineDash([7, 6]);
+      ctx.lineWidth = ring === 1 ? 2.4 : 1.7;
+      ctx.setLineDash([7, 5]);
       ctx.beginPath();
       ctx.arc(sx, sy, r, angle, angle + Math.PI * 2);
       ctx.stroke();
@@ -95,7 +102,7 @@ export function renderGoghCanvas(ctx, state) {
     ctx.arc(sx, sy, star.coreRadius * bloom, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = "#fffbeb";
     ctx.beginPath();
     ctx.arc(sx, sy, star.coreRadius * 0.45 * bloom, 0, Math.PI * 2);
     ctx.fill();
@@ -107,7 +114,6 @@ export function renderGoghCanvas(ctx, state) {
     ctx.save();
     ctx.globalAlpha = horizonAlpha;
 
-    // Distant Alpilles hills
     ctx.fillStyle = "#16294a";
     ctx.beginPath();
     ctx.moveTo(0, height);
@@ -119,7 +125,6 @@ export function renderGoghCanvas(ctx, state) {
     ctx.closePath();
     ctx.fill();
 
-    // Foreground village silhouette & church spire
     ctx.fillStyle = VAN_GOGH_PALETTE.cypressUmber;
     ctx.fillRect(0, height - 42, width, 42);
 
@@ -148,7 +153,7 @@ export function renderGoghCanvas(ctx, state) {
     ctx.fillStyle = VAN_GOGH_PALETTE.cypressUmber;
 
     const baseX = 112;
-    const sway = Math.sin(state.tick * 0.025) * 7;
+    const sway = Math.sin(state.tick * 0.015) * 5;
 
     ctx.beginPath();
     ctx.moveTo(baseX - 34, height);
