@@ -1,52 +1,47 @@
 /**
  * src/gogh-audio.js — Touch-as-Piano Felt-Hammer WebAudio Synthesizer (Ledger 2)
- * Advances note-by-note through a contemplative G-major piano arrangement
- * inspired by Don McLean's "Vincent" ("Starry, starry night...") on each touch.
- *
- * Signed-off-by: Borealis Serenity Hedling <chguard-sentinel@vaked.dev>
  */
 
-// Opening verse melodic contour in G Major (Hz + accompanying lyric phrase)
 export const VINCENT_MELODY_SEQUENCE = [
   // "Star-ry, star-ry night..."
-  { freq: 392.00, bass: 196.00, phrase: "♪ Star-ry, star-ry night..." },       // G4
-  { freq: 369.99, bass: 196.00, phrase: "♪ Star-ry, star-ry night..." },       // F#4
-  { freq: 329.63, bass: 164.81, phrase: "♪ Star-ry, star-ry night..." },       // E4
-  { freq: 293.66, bass: 146.83, phrase: "♪ Star-ry, star-ry night..." },       // D4
-  { freq: 246.94, bass: 123.47, phrase: "♪ Star-ry, star-ry night..." },       // B3
+  { freq: 392.00, bass: 196.00, phrase: "♪ Star-ry, star-ry night..." },
+  { freq: 369.99, bass: 196.00, phrase: "♪ Star-ry, star-ry night..." },
+  { freq: 329.63, bass: 164.81, phrase: "♪ Star-ry, star-ry night..." },
+  { freq: 293.66, bass: 146.83, phrase: "♪ Star-ry, star-ry night..." },
+  { freq: 246.94, bass: 123.47, phrase: "♪ Star-ry, star-ry night..." },
 
   // "Paint your pal-ette blue and grey..."
-  { freq: 246.94, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." }, // B3
-  { freq: 293.66, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." }, // D4
-  { freq: 329.63, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." }, // E4
-  { freq: 369.99, bass: 185.00, phrase: "♪ Paint your pal-ette blue and grey..." }, // F#4
-  { freq: 392.00, bass: 196.00, phrase: "♪ Paint your pal-ette blue and grey..." }, // G4
-  { freq: 329.63, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." }, // E4
-  { freq: 293.66, bass: 146.83, phrase: "♪ Paint your pal-ette blue and grey..." }, // D4
+  { freq: 246.94, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." },
+  { freq: 293.66, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." },
+  { freq: 329.63, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." },
+  { freq: 369.99, bass: 185.00, phrase: "♪ Paint your pal-ette blue and grey..." },
+  { freq: 392.00, bass: 196.00, phrase: "♪ Paint your pal-ette blue and grey..." },
+  { freq: 329.63, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." },
+  { freq: 293.66, bass: 146.83, phrase: "♪ Paint your pal-ette blue and grey..." },
 
   // "Look out on a sum-mer's day..."
-  { freq: 293.66, bass: 130.81, phrase: "♪ Look out on a sum-mer's day..." },   // D4
-  { freq: 329.63, bass: 130.81, phrase: "♪ Look out on a sum-mer's day..." },   // E4
-  { freq: 369.99, bass: 146.83, phrase: "♪ Look out on a sum-mer's day..." },   // F#4
-  { freq: 392.00, bass: 196.00, phrase: "♪ Look out on a sum-mer's day..." },   // G4
-  { freq: 440.00, bass: 220.00, phrase: "♪ Look out on a sum-mer's day..." },   // A4
-  { freq: 392.00, bass: 196.00, phrase: "♪ Look out on a sum-mer's day..." },   // G4
-  { freq: 369.99, bass: 185.00, phrase: "♪ Look out on a sum-mer's day..." },   // F#4
+  { freq: 293.66, bass: 130.81, phrase: "♪ Look out on a sum-mer's day..." },
+  { freq: 329.63, bass: 130.81, phrase: "♪ Look out on a sum-mer's day..." },
+  { freq: 369.99, bass: 146.83, phrase: "♪ Look out on a sum-mer's day..." },
+  { freq: 392.00, bass: 196.00, phrase: "♪ Look out on a sum-mer's day..." },
+  { freq: 440.00, bass: 220.00, phrase: "♪ Look out on a sum-mer's day..." },
+  { freq: 392.00, bass: 196.00, phrase: "♪ Look out on a sum-mer's day..." },
+  { freq: 369.99, bass: 185.00, phrase: "♪ Look out on a sum-mer's day..." },
 
   // "With eyes that know the dark-ness in my soul..."
-  { freq: 329.63, bass: 164.81, phrase: "♪ With eyes that know the dark-ness in my soul..." }, // E4
-  { freq: 369.99, bass: 164.81, phrase: "♪ With eyes that know the dark-ness in my soul..." }, // F#4
-  { freq: 392.00, bass: 196.00, phrase: "♪ With eyes that know the dark-ness in my soul..." }, // G4
-  { freq: 440.00, bass: 220.00, phrase: "♪ With eyes that know the dark-ness in my soul..." }, // A4
-  { freq: 493.88, bass: 246.94, phrase: "♪ With eyes that know the dark-ness in my soul..." }, // B4
-  { freq: 440.00, bass: 220.00, phrase: "♪ With eyes that know the dark-ness in my soul..." }, // A4
-  { freq: 392.00, bass: 196.00, phrase: "♪ With eyes that know the dark-ness in my soul..." }, // G4
-  { freq: 369.99, bass: 146.83, phrase: "♪ With eyes that know the dark-ness in my soul..." }, // F#4
-  { freq: 392.00, bass: 196.00, phrase: "♪ With eyes that know the dark-ness in my soul..." }, // G4
+  { freq: 329.63, bass: 164.81, phrase: "♪ With eyes that know the dark-ness in my soul..." },
+  { freq: 369.99, bass: 164.81, phrase: "♪ With eyes that know the dark-ness in my soul..." },
+  { freq: 392.00, bass: 196.00, phrase: "♪ With eyes that know the dark-ness in my soul..." },
+  { freq: 440.00, bass: 220.00, phrase: "♪ With eyes that know the dark-ness in my soul..." },
+  { freq: 493.88, bass: 246.94, phrase: "♪ With eyes that know the dark-ness in my soul..." },
+  { freq: 440.00, bass: 220.00, phrase: "♪ With eyes that know the dark-ness in my soul..." },
+  { freq: 392.00, bass: 196.00, phrase: "♪ With eyes that know the dark-ness in my soul..." },
+  { freq: 369.99, bass: 146.83, phrase: "♪ With eyes that know the dark-ness in my soul..." },
+  { freq: 392.00, bass: 196.00, phrase: "♪ With eyes that know the dark-ness in my soul..." },
 ];
 
 export function createGoghPianoAudio() {
-  let muted = false; // Touching the canvas acts directly like pressing a piano key
+  let muted = false;
   let ctx = null;
   let stepIndex = 0;
 
@@ -56,7 +51,7 @@ export function createGoghPianoAudio() {
       if (Ctor) ctx = new Ctor();
     }
     if (ctx && ctx.state === "suspended") {
-      ctx.resume().catch(() => {});
+      ctx.resume();
     }
     return ctx;
   };
@@ -71,7 +66,6 @@ export function createGoghPianoAudio() {
     const filter = ac.createBiquadFilter();
     const gain = ac.createGain();
 
-    // Warm felt-hammer piano timbre
     osc.type = "triangle";
     osc.frequency.setValueAtTime(freqHz, now);
 
@@ -105,6 +99,7 @@ export function createGoghPianoAudio() {
     isMuted: () => muted,
     toggleMute: () => {
       muted = !muted;
+      if (!muted) ensureCtx();
       return muted;
     },
     resetMelody: () => {
@@ -116,8 +111,8 @@ export function createGoghPianoAudio() {
       stepIndex++;
 
       if (!muted) {
-        playFeltPianoVoice(entry.freq, 0.075, 1.9);
-        playFeltPianoVoice(entry.bass, 0.032, 2.4);
+        playFeltPianoVoice(entry.freq, 0.09, 1.9);
+        playFeltPianoVoice(entry.bass, 0.04, 2.4);
       }
 
       return {
