@@ -1,5 +1,7 @@
 /**
  * src/gogh-audio.js — Touch-as-Piano Felt-Hammer WebAudio Synthesizer (Ledger 2)
+ *
+ * Signed-off-by: Borealis Serenity Hedling <chguard-sentinel@vaked.dev>
  */
 
 export const VINCENT_MELODY_SEQUENCE = [
