@@ -1,9 +1,3 @@
-/**
- * src/gogh-palette.js — Custom 6-Pigment Saint-Rémy Palette & Holistic Evolution Stages
- *
- * Signed-off-by: Borealis Serenity Hedling <chguard-sentinel@vaked.dev>
- */
-
 export const VAN_GOGH_PALETTE = {
   ultramarineNight: "#0b193d",
   prussianSwirl: "#1b3b73",
@@ -14,11 +8,11 @@ export const VAN_GOGH_PALETTE = {
 };
 
 export const SWIRL_BRUSH_COLORS = [
-  "#1b3b73", // Prussian Swirl
-  "#264f94", // Deep Cobalt Dash
-  "#3b76b8", // Cerulean Mist
-  "#5a9bd4", // Luminous Sky Stroke
-  "#f7d046", // Cadmium Highlight Thread
+  "#1b3b73",
+  "#264f94",
+  "#3b76b8",
+  "#5a9bd4",
+  "#f7d046",
 ];
 
 export const EVOLUTION_STAGES = [

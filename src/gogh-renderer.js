@@ -1,9 +1,3 @@
-/**
- * src/gogh-renderer.js — Zero-Flicker Impasto Brushstroke, Halo & Horizon Renderer (Ledger 2)
- *
- * Signed-off-by: Borealis Serenity Hedling <chguard-sentinel@vaked.dev>
- */
-
 import { fromQ16 } from "./core.js";
 import { VAN_GOGH_PALETTE } from "./gogh-palette.js";
 
@@ -11,7 +5,6 @@ export function renderGoghCanvas(ctx, state) {
   const { width, height } = ctx.canvas;
   const notes = state.notesPlayed;
 
-  // 1. Steady, non-flashing opaque twilight sky gradient
   const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
   skyGrad.addColorStop(0, "#08122e");
   skyGrad.addColorStop(0.55, VAN_GOGH_PALETTE.ultramarineNight);
@@ -19,7 +12,6 @@ export function renderGoghCanvas(ctx, state) {
   ctx.fillStyle = skyGrad;
   ctx.fillRect(0, 0, width, height);
 
-  // 2. Smooth, continuous impasto brushstroke curves (zero strobe)
   ctx.lineCap = "round";
   for (const p of state.particles) {
     const x1 = fromQ16(p.prevXQ16);
@@ -30,7 +22,7 @@ export function renderGoghCanvas(ctx, state) {
     const dx = x2 - x1;
     const dy = y2 - y1;
     const dist = Math.hypot(dx, dy);
-    if (dist < 0.1 || dist > 28) continue;
+    if (dist < 0.05 || dist > 28) continue;
 
     ctx.strokeStyle = p.color;
     ctx.lineWidth = p.width;
@@ -40,7 +32,6 @@ export function renderGoghCanvas(ctx, state) {
     ctx.stroke();
   }
 
-  // 3. Stage III+ (Notes >= 16): Glowing Cadmium Crescent Moon in upper right
   if (notes >= 16) {
     const moonAlpha = Math.min(1, (notes - 15) * 0.16);
     const mx = width - 96;
@@ -48,7 +39,6 @@ export function renderGoghCanvas(ctx, state) {
 
     ctx.save();
     ctx.globalAlpha = moonAlpha;
-
     ctx.strokeStyle = VAN_GOGH_PALETTE.naplesHalo;
     ctx.lineWidth = 2.5;
     ctx.setLineDash([8, 6]);
@@ -69,20 +59,17 @@ export function renderGoghCanvas(ctx, state) {
     ctx.restore();
   }
 
-  // 4. Player-Touched Stars & Gentle Rotating Impasto Halos
   for (const star of state.stars) {
     const sx = fromQ16(star.xQ16);
     const sy = fromQ16(star.yQ16);
     const age = state.tick - star.birthTick;
-    const bloom = Math.min(1, age / 24);
+    const bloom = Math.min(1, age / 45);
 
-    // Soft warm glow behind star
-    ctx.fillStyle = "rgba(247, 208, 70, 0.14)";
+    ctx.fillStyle = "rgba(247, 208, 70, 0.08)";
     ctx.beginPath();
     ctx.arc(sx, sy, (24 + star.haloRings * 7) * bloom, 0, Math.PI * 2);
     ctx.fill();
 
-    // Concentric broken-dash Naples Halo rings (slow, calm rotation)
     for (let ring = 1; ring <= star.haloRings; ring++) {
       const r = (11 + ring * 9) * bloom;
       const angle = state.tick * 0.008 * star.spinDirection * (ring % 2 === 0 ? -1 : 1);
@@ -97,7 +84,6 @@ export function renderGoghCanvas(ctx, state) {
       ctx.restore();
     }
 
-    // Luminous Cadmium Starlight core
     ctx.fillStyle = VAN_GOGH_PALETTE.cadmiumStarlight;
     ctx.beginPath();
     ctx.arc(sx, sy, star.coreRadius * bloom, 0, Math.PI * 2);
@@ -109,7 +95,6 @@ export function renderGoghCanvas(ctx, state) {
     ctx.fill();
   }
 
-  // 5. Stage III+ (Notes >= 16): Rolling Saint-Rémy Hills, Church Spire & Warm Windows
   if (notes >= 16) {
     const horizonAlpha = Math.min(1, (notes - 15) * 0.14);
     ctx.save();
@@ -129,7 +114,6 @@ export function renderGoghCanvas(ctx, state) {
     ctx.fillStyle = VAN_GOGH_PALETTE.cypressUmber;
     ctx.fillRect(0, height - 42, width, 42);
 
-    // Church spire
     ctx.beginPath();
     ctx.moveTo(width * 0.56, height - 42);
     ctx.lineTo(width * 0.575, height - 115);
@@ -137,16 +121,14 @@ export function renderGoghCanvas(ctx, state) {
     ctx.closePath();
     ctx.fill();
 
-    // Warm lit cottage windows
     ctx.fillStyle = VAN_GOGH_PALETTE.cadmiumStarlight;
-    const windows =;
+    const windows = [190, 235, 310, 445, 510];
     for (const wx of windows) {
       ctx.fillRect(wx, height - 28, 6, 8);
     }
     ctx.restore();
   }
 
-  // 6. Stage IV (Notes >= 23): Undulating Foreground Flame Cypress Tree
   if (notes >= 23) {
     const cypressAlpha = Math.min(1, (notes - 22) * 0.18);
     ctx.save();
@@ -158,22 +140,8 @@ export function renderGoghCanvas(ctx, state) {
 
     ctx.beginPath();
     ctx.moveTo(baseX - 34, height);
-    ctx.bezierCurveTo(
-      baseX - 44,
-      height * 0.65,
-      baseX - 18 + sway,
-      height * 0.35,
-      baseX + sway * 1.4,
-      54
-    );
-    ctx.bezierCurveTo(
-      baseX + 22 + sway,
-      height * 0.36,
-      baseX + 42,
-      height * 0.68,
-      baseX + 34,
-      height
-    );
+    ctx.bezierCurveTo(baseX - 44, height * 0.65, baseX - 18 + sway, height * 0.35, baseX + sway * 1.4, 54);
+    ctx.bezierCurveTo(baseX + 22 + sway, height * 0.36, baseX + 42, height * 0.68, baseX + 34, height);
     ctx.closePath();
     ctx.fill();
     ctx.restore();

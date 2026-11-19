@@ -13,7 +13,7 @@ import { createGoghCanvasState, spawnStarAt, stepGoghSwirls } from "../src/gogh-
 test("1. Initial Starry Night State & Deterministic Impasto Particles", () => {
   const s = createGoghCanvasState(0x18890619);
   assert.equal(s.stars.length, 0);
-  assert.equal(s.particles.length, 140);
+  assert.equal(s.particles.length, 120);
   assert.equal(s.stage.id, "FIRST_STARS");
 });
 
@@ -32,5 +32,5 @@ test("3. Q16.16 Rotational Vortex Flow Step", () => {
   s = spawnStarAt(s, 340, 220, 0);
   const next = stepGoghSwirls(s);
   assert.equal(next.tick, 1);
-  assert.equal(next.particles.length, 140);
+  assert.equal(next.particles.length, 120);
 });

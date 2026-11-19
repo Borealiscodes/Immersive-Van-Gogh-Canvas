@@ -1,18 +1,10 @@
-/**
- * src/gogh-audio.js — Touch-as-Piano Felt-Hammer WebAudio Synthesizer (Ledger 2)
- *
- * Signed-off-by: Borealis Serenity Hedling <chguard-sentinel@vaked.dev>
- */
-
 export const VINCENT_MELODY_SEQUENCE = [
-  // "Star-ry, star-ry night..."
   { freq: 392.00, bass: 196.00, phrase: "♪ Star-ry, star-ry night..." },
   { freq: 369.99, bass: 196.00, phrase: "♪ Star-ry, star-ry night..." },
   { freq: 329.63, bass: 164.81, phrase: "♪ Star-ry, star-ry night..." },
   { freq: 293.66, bass: 146.83, phrase: "♪ Star-ry, star-ry night..." },
   { freq: 246.94, bass: 123.47, phrase: "♪ Star-ry, star-ry night..." },
 
-  // "Paint your pal-ette blue and grey..."
   { freq: 246.94, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." },
   { freq: 293.66, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." },
   { freq: 329.63, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." },
@@ -21,7 +13,6 @@ export const VINCENT_MELODY_SEQUENCE = [
   { freq: 329.63, bass: 164.81, phrase: "♪ Paint your pal-ette blue and grey..." },
   { freq: 293.66, bass: 146.83, phrase: "♪ Paint your pal-ette blue and grey..." },
 
-  // "Look out on a sum-mer's day..."
   { freq: 293.66, bass: 130.81, phrase: "♪ Look out on a sum-mer's day..." },
   { freq: 329.63, bass: 130.81, phrase: "♪ Look out on a sum-mer's day..." },
   { freq: 369.99, bass: 146.83, phrase: "♪ Look out on a sum-mer's day..." },
@@ -30,7 +21,6 @@ export const VINCENT_MELODY_SEQUENCE = [
   { freq: 392.00, bass: 196.00, phrase: "♪ Look out on a sum-mer's day..." },
   { freq: 369.99, bass: 185.00, phrase: "♪ Look out on a sum-mer's day..." },
 
-  // "With eyes that know the dark-ness in my soul..."
   { freq: 329.63, bass: 164.81, phrase: "♪ With eyes that know the dark-ness in my soul..." },
   { freq: 369.99, bass: 164.81, phrase: "♪ With eyes that know the dark-ness in my soul..." },
   { freq: 392.00, bass: 196.00, phrase: "♪ With eyes that know the dark-ness in my soul..." },
@@ -58,43 +48,61 @@ export function createGoghPianoAudio() {
     return ctx;
   };
 
-  const playFeltPianoVoice = (freqHz, gainPeak, durationSec) => {
+  const playCrispPianoKey = (freqHz, gainPeak, durationSec) => {
     const ac = ensureCtx();
     if (!ac) return;
 
     const now = ac.currentTime;
-    const osc = ac.createOscillator();
-    const overtone = ac.createOscillator();
+    const fundamental = ac.createOscillator();
+    const secondHarm = ac.createOscillator();
+    const thirdHarm = ac.createOscillator();
+
+    const g2 = ac.createGain();
+    const g3 = ac.createGain();
     const filter = ac.createBiquadFilter();
-    const gain = ac.createGain();
+    const env = ac.createGain();
 
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(freqHz, now);
+    fundamental.type = "triangle";
+    fundamental.frequency.setValueAtTime(freqHz, now);
 
-    overtone.type = "sine";
-    overtone.frequency.setValueAtTime(freqHz * 2.0, now);
+    secondHarm.type = "sine";
+    secondHarm.frequency.setValueAtTime(freqHz * 2.0, now);
+    g2.gain.setValueAtTime(0.32, now);
+    g2.gain.exponentialRampToValueAtTime(0.04, now + durationSec * 0.6);
 
-    const overGain = ac.createGain();
-    overGain.gain.setValueAtTime(0.18, now);
+    thirdHarm.type = "sine";
+    thirdHarm.frequency.setValueAtTime(freqHz * 3.0, now);
+    g3.gain.setValueAtTime(0.14, now);
+    g3.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
 
+    // Bright hammer strike decaying smoothly into warm string resonance
     filter.type = "lowpass";
-    filter.frequency.setValueAtTime(1100, now);
-    filter.frequency.exponentialRampToValueAtTime(340, now + durationSec);
+    filter.frequency.setValueAtTime(2800, now);
+    filter.frequency.exponentialRampToValueAtTime(750, now + 0.35);
 
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(gainPeak, now + 0.025);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + durationSec);
+    // Snappy 4ms acoustic piano attack
+    env.gain.setValueAtTime(0.0001, now);
+    env.gain.linearRampToValueAtTime(gainPeak, now + 0.004);
+    env.gain.exponentialRampToValueAtTime(gainPeak * 0.45, now + 0.25);
+    env.gain.exponentialRampToValueAtTime(0.0001, now + durationSec);
 
-    osc.connect(filter);
-    overtone.connect(overGain);
-    overGain.connect(filter);
-    filter.connect(gain);
-    gain.connect(ac.destination);
+    fundamental.connect(filter);
+    secondHarm.connect(g2);
+    g2.connect(filter);
+    thirdHarm.connect(g3);
+    g3.connect(filter);
 
-    osc.start(now);
-    overtone.start(now);
-    osc.stop(now + durationSec + 0.05);
-    overtone.stop(now + durationSec + 0.05);
+    filter.connect(env);
+    env.connect(ac.destination);
+
+    fundamental.start(now);
+    secondHarm.start(now);
+    thirdHarm.start(now);
+
+    const stopAt = now + durationSec + 0.05;
+    fundamental.stop(stopAt);
+    secondHarm.stop(stopAt);
+    thirdHarm.stop(stopAt);
   };
 
   return {
@@ -113,8 +121,8 @@ export function createGoghPianoAudio() {
       stepIndex++;
 
       if (!muted) {
-        playFeltPianoVoice(entry.freq, 0.09, 1.9);
-        playFeltPianoVoice(entry.bass, 0.04, 2.4);
+        playCrispPianoKey(entry.freq, 0.14, 1.45);
+        playCrispPianoKey(entry.bass, 0.055, 1.85);
       }
 
       return {

@@ -103,3 +103,9 @@ button:hover {
   border-color: #f7d046;
   color: #f7d046;
 }
+
+canvas, button, body {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
