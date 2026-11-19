@@ -49,7 +49,7 @@ export const EVOLUTION_STAGES = [
 ];
 
 export function getEvolutionStage(notesPlayed) {
-  let active = EVOLUTION_STAGES;
+  let active = EVOLUTION_STAGES[0];
   for (const st of EVOLUTION_STAGES) {
     if (notesPlayed >= st.minNotes) active = st;
   }
