@@ -1,5 +1,7 @@
 /**
  * src/gogh-renderer.js — Zero-Flicker Impasto Brushstroke, Halo & Horizon Renderer (Ledger 2)
+ *
+ * Signed-off-by: Borealis Serenity Hedling <chguard-sentinel@vaked.dev>
  */
 
 import { fromQ16 } from "./core.js";
@@ -30,7 +32,6 @@ export function renderGoghCanvas(ctx, state) {
     const dist = Math.hypot(dx, dy);
     if (dist < 0.1 || dist > 28) continue;
 
-    // Extend dash gently along velocity vector for rich impasto brushwork
     ctx.strokeStyle = p.color;
     ctx.lineWidth = p.width;
     ctx.beginPath();
